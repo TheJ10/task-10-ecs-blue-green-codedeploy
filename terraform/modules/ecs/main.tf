@@ -103,4 +103,10 @@ resource "aws_ecs_service" "jaspal_task10_service" {
   container_name   = "jaspal-task10-strapi-container"
   container_port   = 1337
   }
+
+  lifecycle {
+  ignore_changes = [
+    task_definition
+  ]
+}
 }
