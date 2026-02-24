@@ -1,9 +1,9 @@
-# Task-9: Strapi Deployment on AWS ECS using Fargate Spot (Terraform + CI/CD)
+# Task-10: Blue/Green Deployment on AWS ECS using CodeDeploy (Terraform + CI/CD)
 
 ## Project Overview
-This project demonstrates deploying a Strapi application on AWS ECS using Fargate Spot, fully managed through Terraform and automated with GitHub Actions.
+This project demonstrates implementing Blue/Green deployment for a Strapi application running on AWS ECS Fargate, managed entirely through Terraform and automated using GitHub Actions.
 
-This is an upgrade from the previous deployment where standard Fargate was used. In this version, the ECS service is configured with a capacity provider strategy using FARGATE_SPOT to optimize compute cost while maintaining a serverless architecture.
+In this version, AWS CodeDeploy is integrated with ECS to enable controlled traffic shifting between Blue and Green environments using an Application Load Balancer (ALB). The deployment strategy ensures zero-downtime updates with automatic rollback capability.
 
 ---
 
@@ -23,33 +23,47 @@ This is an upgrade from the previous deployment where standard Fargate was used.
          ↓
 ECS Cluster (Fargate Spot)
          ↓
+ AWS CodeDeploy (Blue/Green)
+         ↓
+ Application Load Balancer
+   (Blue & Green Target Groups)
+         ↓
 Strapi Application Running
 ```
 
 ---
 
 ## Technologies Used
-- **Strapi** (Node.js Headless CMS)
-- **Docker**
-- **Terraform** (Modular IaC)
-- **GitHub Actions** (CI/CD)
-- **Amazon ECS**
-- **Amazon ECR**
-- **Amazon RDS (PostgreSQL)**
-- **AWS VPC & Security Groups**
-- **AWS Fargate Spot**
+- Strapi (Node.js Headless CMS)
+- Docker
+- Terraform (Modular IaC)
+- GitHub Actions (CI/CD)
+- Amazon ECS (Fargate Spot)
+- Amazon ECR
+- Amazon RDS (PostgreSQL)
+- Application Load Balancer (ALB)
+- AWS CodeDeploy (ECS Blue/Green)
+- AWS VPC & Security Groups
 
 ---
 
 ## Infrastructure Provisioned via Terraform
 - ECS Cluster
 - ECS Task Definition
-- ECS Service (Fargate Spot Capacity Provider)
+- ECS Service (Deployment Controller: CODE_DEPLOY)
 - Amazon ECR Repository
 - Amazon RDS PostgreSQL Instance
 - DB Subnet Group
+- Application Load Balancer
+- Blue Target Group
+- Green Target Group
+- ALB Listener (Port 80)
+- CodeDeploy Application
+- CodeDeploy Deployment Group
 - Networking (Default VPC & Subnets)
-Infrastructure is organized using a modular Terraform structure for better maintainability.
+
+Infrastructure is organized using a modular Terraform structure for better maintainability and 
+scalability.
 
 ---
 
@@ -61,26 +75,20 @@ Infrastructure is organized using a modular Terraform structure for better maint
 
 ### CD Pipeline
 - Runs Terraform
-- Updates ECS Task Definition with new image tag
-- Deploys updated service automatically
+- Creates new ECS task definition revision
+- CodeDeploy triggers Blue/Green deployment
+- Traffic shifts from Blue → Green
+- Old tasks terminated after successful deployment
 
 ---
 
-## Key Upgrade in Task-9
-- Replaced standard Fargate with Fargate Spot
-- Configured ECS Service using capacity provider strategy
-- Achieved cost optimization without changing application architecture
-- Maintained fully automated CI/CD pipeline
-
----
-
-## Application Access
-The Strapi admin panel runs on ECS Fargate Spot and is accessible via the public IP assigned to the task.
-
-### Example:
-```bash
-http://<public-ip>:1337/admin
-```
+## Blue/Green Deployment Configuration
+- Deployment Type: Blue/Green
+- Deployment Strategy: CodeDeployDefault.ECSCanary10Percent5Minutes
+- Traffic Shift: 10% → 100%
+- Automatic Rollback: Enabled
+- Old Task Termination: Enabled (after successful deployment)
+- Deployment Controller: CODE_DEPLOY
 
 ---
 
@@ -99,7 +107,9 @@ http://<public-ip>:1337/admin
 │   └── modules/
 │       ├── ecs/
 │       ├── rds/
-│       └── ecr/
+│       ├── ecr/
+│       ├── alb/
+│       └── codedeploy/
 │
 └── .github/
     └── workflows/
@@ -110,15 +120,12 @@ http://<public-ip>:1337/admin
 ---
 
 ## Final Result
-- Strapi application successfully running on ECS Fargate spot
-- Admin panel accessible via ECS task public IP
-- Logs and metrics visible in CloudWatch
-- CI/CD pipeline functioning end-to-end
-
----
-
-## Loom Video
-Link: https://www.loom.com/share/db64b5cac7344da0a90ca1f6ed1dd9b2
+- Strapi deployed using Blue/Green strategy
+- Traffic managed through ALB with Blue & Green target groups
+- Zero-downtime deployment enabled
+- Automatic rollback configured
+- CI/CD pipeline fully automated
+- Logs and metrics available in CloudWatch
 
 ---
 
