@@ -29,5 +29,5 @@ resource "aws_db_instance" "jaspal_task10_db" {
   skip_final_snapshot     = true
   deletion_protection     = false
 
-  db_subnet_group_name    = aws_db_subnet_group.jaspal_task9_db_subnet_group.name
+  db_subnet_group_name    = aws_db_subnet_group.jaspal_task10_db_subnet_group.name
 }

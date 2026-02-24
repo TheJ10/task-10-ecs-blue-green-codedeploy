@@ -28,9 +28,13 @@ module "ecr_jaspal_task10" {
   source = "./modules/ecr"
 }
 
+data "aws_vpc" "default" {
+  default = true
+}
+
 module "alb_jaspal_task10" {
   source     = "./modules/alb"
-  vpc_id     = module.ecs_jaspal_task10.vpc_id
+  vpc_id     = data.aws_vpc.default.id
   subnet_ids = var.subnet_ids
 }
 
